@@ -5,7 +5,7 @@ export default function AdminPanel({ selectedLeague, onOpenMatchModal, onPartici
     const [playerForm, setPlayerForm] = useState({ firstName: '', lastName: '', phoneNumber: '', hand: 'R' });
     const [loadingPlayer, setLoadingPlayer] = useState(false);
     const [teams, setTeams] = useState([]);
-    
+
     // 🎯 Estados para controlar el dropdown personalizado de inscripción
     const [openTeamDropdown, setOpenTeamDropdown] = useState(false);
     const [selectedTeamId, setSelectedTeamId] = useState('');
@@ -17,7 +17,9 @@ export default function AdminPanel({ selectedLeague, onOpenMatchModal, onPartici
                 const data = Array.isArray(res.data) ? res.data : (res.data.content || []);
                 setTeams(data);
             })
-            .catch(() => {});
+            .catch((err) => {
+                console.error("Error fetching teams:", err);
+            });
     };
 
     useEffect(() => {
@@ -34,7 +36,9 @@ export default function AdminPanel({ selectedLeague, onOpenMatchModal, onPartici
                 setPlayerForm({ firstName: '', lastName: '', phoneNumber: '', hand: 'R' });
                 fetchTeams();
             })
-            .catch(() => {})
+            .catch((err) => {
+                console.error("Error creating player:", err);
+            })
             .finally(() => setLoadingPlayer(false));
     };
 
@@ -120,7 +124,7 @@ export default function AdminPanel({ selectedLeague, onOpenMatchModal, onPartici
                         >
                             <span>{selectedTeamName || "-- Select a player --"}</span>
                             <svg className="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
                             </svg>
                         </button>
 
@@ -148,7 +152,7 @@ export default function AdminPanel({ selectedLeague, onOpenMatchModal, onPartici
                             </div>
                         )}
                     </div>
-                    
+
                     <button
                         type="submit"
                         className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 px-6 rounded-lg transition-all shrink-0"

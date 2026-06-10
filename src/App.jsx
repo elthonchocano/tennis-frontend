@@ -6,7 +6,9 @@ import MatchModal from './components/MatchModal';
 import ResultModal from './components/ResultModal';
 import TeamMatchesPanel from './components/TeamMatchesPanel';
 import LeaderboardTable from './components/LeaderboardTable';
+import Footer from './components/Footer';
 import { useAuth } from './context/AuthContext';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   const { isAuthenticated, redirectToLogin, logout } = useAuth();
@@ -73,7 +75,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
       <Navbar
         isAdmin={isAuthenticated}
         onLogin={redirectToLogin}
@@ -83,7 +85,7 @@ function App() {
         onLeagueChange={setSelectedLeague}
       />
 
-      <div className="max-w-6xl mx-auto px-4 pb-12">
+      <div className="max-w-6xl mx-auto px-4 pb-12 flex-grow w-full">
         {isAuthenticated && (
           <AdminPanel
             selectedLeague={selectedLeague}
@@ -94,7 +96,7 @@ function App() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <LeaderboardTable 
+            <LeaderboardTable
               leaderboard={leaderboard}
               loading={loading}
               onViewMatches={fetchTeamMatches}
@@ -109,6 +111,10 @@ function App() {
           />
         </div>
       </div>
+
+      <Footer />
+
+      <ScrollToTop />
 
       <MatchModal
         isOpen={isMatchModalOpen}

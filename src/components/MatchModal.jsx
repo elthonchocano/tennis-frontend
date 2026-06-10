@@ -1,13 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 
 export default function MatchModal({ isOpen, onClose, selectedLeague, onMatchCreated }) {
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Estados para controlar la apertura de nuestros dropdowns personalizados
+  const [openPlayer1, setOpenPlayer1] = useState(false);
+  const [openPlayer2, setOpenPlayer2] = useState(false);
+
   const [formData, setFormData] = useState({
     team1Id: '',
+    team1Name: '', // Guardamos el nombre para mostrarlo en el botón personalizado
     team2Id: '',
+    team2Name: '',
     matchDate: '',
     matchType: 'SHORT'
   });
@@ -16,13 +22,12 @@ export default function MatchModal({ isOpen, onClose, selectedLeague, onMatchCre
   useEffect(() => {
     if (isOpen && selectedLeague) {
       setLoading(true);
-
       api.get(`/v1/leagues/${selectedLeague}/leaderboard?page=0&size=50`)
         .then(res => {
           const data = Array.isArray(res.data) ? res.data : (res.data.content || []);
           setParticipants(data);
         })
-        .catch(() => {})
+        .catch(() => { })
         .finally(() => setLoading(false));
     }
   }, [isOpen, selectedLeague]);
@@ -54,7 +59,7 @@ export default function MatchModal({ isOpen, onClose, selectedLeague, onMatchCre
       .then(() => {
         alert("Match scheduled successfully.");
         onMatchCreated();
-        setFormData({ team1Id: '', team2Id: '', matchDate: '', matchType: 'SHORT' });
+        setFormData({ team1Id: '', team1Name: '', team2Id: '', team2Name: '', matchDate: '', matchType: 'SHORT' });
         onClose();
       })
       .catch(err => {
@@ -66,7 +71,7 @@ export default function MatchModal({ isOpen, onClose, selectedLeague, onMatchCre
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
-        
+
         <div className="p-4 bg-slate-900 text-white font-bold flex justify-between items-center shrink-0">
           <div>
             <span className="text-xs uppercase text-indigo-400 block tracking-wider font-semibold">Schedule</span>
@@ -76,42 +81,72 @@ export default function MatchModal({ isOpen, onClose, selectedLeague, onMatchCre
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
-          <div>
+
+          {/* PLAYER 1 CUSTOM DROPDOWN */}
+          <div className="relative">
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Home (Player 1)</label>
-            <select
-              required
-              className="w-full border rounded-lg p-2.5 bg-slate-50 text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-medium"
-              value={formData.team1Id}
-              onChange={(e) => setFormData({ ...formData, team1Id: e.target.value })}
+            <button
+              type="button"
               disabled={loading || submitting}
+              onClick={() => { setOpenPlayer1(!openPlayer1); setOpenPlayer2(false); }}
+              className="w-full border rounded-lg p-2.5 bg-slate-50 text-sm text-left outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-medium flex justify-between items-center"
             >
-              <option value="">{loading ? '🔄 Loading participants...' : '-- Select a player --'}</option>
-              {participants.map(p => (
-                <option key={`m-modal-p1-${p.team.id}`} value={p.team.id}>
-                  {p.team.teamName}
-                </option>
-              ))}
-            </select>
+              <span>{formData.team1Name || (loading ? '🔄 Loading...' : '-- Select a player --')}</span>
+              <svg className="h-4 w-4 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
+            </button>
+
+            {openPlayer1 && !loading && (
+              <div className="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1">
+                {participants.map(p => (
+                  <button
+                    key={`custom-p1-${p.team.id}`}
+                    type="button"
+                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors"
+                    onClick={() => {
+                      setFormData({ ...formData, team1Id: p.team.id, team1Name: p.team.teamName });
+                      setOpenPlayer1(false);
+                    }}
+                  >
+                    {p.team.teamName}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div>
+          {/* PLAYER 2 CUSTOM DROPDOWN */}
+          <div className="relative">
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Away (Player 2)</label>
-            <select
-              required
-              className="w-full border rounded-lg p-2.5 bg-slate-50 text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-medium"
-              value={formData.team2Id}
-              onChange={(e) => setFormData({ ...formData, team2Id: e.target.value })}
+            <button
+              type="button"
               disabled={loading || submitting}
+              onClick={() => { setOpenPlayer2(!openPlayer2); setOpenPlayer1(false); }}
+              className="w-full border rounded-lg p-2.5 bg-slate-50 text-sm text-left outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-medium flex justify-between items-center"
             >
-              <option value="">{loading ? '🔄 Loading participants...' : '-- Select a player --'}</option>
-              {participants.map(p => (
-                <option key={`m-modal-p2-${p.team.id}`} value={p.team.id}>
-                  {p.team.teamName}
-                </option>
-              ))}
-            </select>
+              <span>{formData.team2Name || (loading ? '🔄 Loading...' : '-- Select a player --')}</span>
+              <svg className="h-4 w-4 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
+            </button>
+
+            {openPlayer2 && !loading && (
+              <div className="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1">
+                {participants.map(p => (
+                  <button
+                    key={`custom-p2-${p.team.id}`}
+                    type="button"
+                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors"
+                    onClick={() => {
+                      setFormData({ ...formData, team2Id: p.team.id, team2Name: p.team.teamName });
+                      setOpenPlayer2(false);
+                    }}
+                  >
+                    {p.team.teamName}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
+          {/* DATE INPUT */}
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Scheduled Date</label>
             <input
@@ -124,6 +159,7 @@ export default function MatchModal({ isOpen, onClose, selectedLeague, onMatchCre
             />
           </div>
 
+          {/* SCORING FORMAT */}
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Scoring Format</label>
             <div className="grid grid-cols-2 gap-3 mt-1">
@@ -146,6 +182,7 @@ export default function MatchModal({ isOpen, onClose, selectedLeague, onMatchCre
             </div>
           </div>
 
+          {/* ACTIONS */}
           <div className="flex justify-end gap-3 pt-4 border-t mt-6 shrink-0">
             <button
               type="button"

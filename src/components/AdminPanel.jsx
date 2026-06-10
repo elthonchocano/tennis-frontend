@@ -116,7 +116,7 @@ export default function AdminPanel({ selectedLeague, onOpenMatchModal, onPartici
                             <option value="">-- Select a player --</option>
                             {Array.isArray(teams) && teams.map(t => (
                                 <option key={`team-opt-${t.id}`} value={t.id}>
-                                    {t.teamName} (ID: {t.id})
+                                    {t.teamName}
                                 </option>
                             ))}
                         </select>

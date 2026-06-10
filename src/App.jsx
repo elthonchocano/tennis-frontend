@@ -46,6 +46,8 @@ function App() {
   };
 
   useEffect(() => {
+    setSelectedTeam(null);
+    setMatches([]);
     fetchLeaderboard(selectedLeague);
   }, [selectedLeague]);
 

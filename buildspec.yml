@@ -1,0 +1,18 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - npm install
+  build:
+    commands:
+      - echo Building React frontend for production...
+      - npm run build
+  post_build:
+    commands:
+      - echo Uploading static assets to S3 hosting bucket...
+      - aws s3 sync dist/ s3://$FRONTEND_S3_BUCKET --delete
+      - echo Invalidating CloudFront cache to clear edge locations...
+      - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DIST_ID --paths "/*"

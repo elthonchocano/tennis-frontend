@@ -19,10 +19,17 @@ phases:
       # Upload build artifacts
       - echo Uploading static assets...
       - aws s3 sync dist/ s3://$FRONTEND_S3_BUCKET
+
+      - echo "Checking available environment variables..."
+      - env | grep VITE_ > env_debug.log
+      - cat env_debug.log
       
       # Generate dynamic configuration file for runtime usage
       - |
         echo "{\"VITE_API_BASE_URL\": \"$VITE_API_URL\", \"VITE_AUTH_SERVER_URL\": \"$VITE_AUTH_SERVER_URL\", \"VITE_AUTH_CLIENT_ID\": \"$VITE_AUTH_CLIENT_ID\"}" > dist/config.json
+      
+      - echo "Generated config file content:"
+      - cat dist/config.json
       
       # Upload the configuration file to S3
       - aws s3 cp dist/config.json s3://$FRONTEND_S3_BUCKET/config.json

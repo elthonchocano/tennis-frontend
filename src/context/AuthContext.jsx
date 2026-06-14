@@ -7,6 +7,7 @@ export function AuthProvider({ children }) {
     const [token, setToken] = useState(localStorage.getItem('token'));
     const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
     const [config, setConfig] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const timestamp = new Date().getTime();
@@ -15,12 +16,18 @@ export function AuthProvider({ children }) {
                 if (!res.ok) throw new Error('Network response was not ok');
                 return res.json();
             })
-            .then((data) => setConfig(data))
-            .catch((err) => console.error("Failed to load config:", err));
+            .then((data) => {
+                setConfig(data);
+                setIsLoading(false);
+            })
+            .catch((err) => {
+                console.error("Failed to load config:", err);
+                setIsLoading(false); 
+            });
     }, []);
 
     useEffect(() => {
-        if (!config) return;
+        if (isLoading || !config) return;
 
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
@@ -39,16 +46,14 @@ export function AuthProvider({ children }) {
             })
                 .then(response => {
                     const { access_token, refresh_token } = response.data;
-
                     localStorage.setItem('token', access_token);
                     localStorage.setItem('refresh_token', refresh_token);
-
                     setToken(access_token);
                     setIsAuthenticated(true);
                 })
-                .catch(() => { });
+                .catch(err => console.error("Auth Token Error:", err));
         }
-    }, [config]);
+    }, [config, isLoading]);
 
     const redirectToLogin = () => {
         if (!config) return;
@@ -64,6 +69,8 @@ export function AuthProvider({ children }) {
         setIsAuthenticated(false);
         window.location.href = `${config.VITE_AUTH_SERVER_URL}/protocol/openid-connect/logout?client_id=${config.VITE_AUTH_CLIENT_ID}&post_logout_redirect_uri=${encodeURIComponent(window.location.origin)}`;
     };
+
+    if (isLoading) return <div>Loading Application...</div>;
 
     return (
         <AuthContext.Provider value={{ token, isAuthenticated, redirectToLogin, logout }}>

@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-export default function LeagueSelector({ leagues, selectedLeague, onLeagueChange }) {
+export default function LeagueSelector({ leagues = [], selectedLeague, onLeagueChange }) { // 1. Valor por defecto
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
-    const currentLeague = leagues.find(l => String(l.id) === String(selectedLeague));
+    const currentLeague = Array.isArray(leagues)
+        ? leagues.find(l => String(l?.id) === String(selectedLeague))
+        : null;
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -20,28 +22,28 @@ export default function LeagueSelector({ leagues, selectedLeague, onLeagueChange
         <div className="relative inline-block text-left w-full max-w-[240px] sm:max-w-xs" ref={dropdownRef}>
             <button
                 type="button"
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full bg-slate-800 text-white border border-slate-700 rounded-xl p-2.5 flex items-center justify-between outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-left"
+                onClick={() => leagues.length > 0 && setIsOpen(!isOpen)} // 3. No abrir si está vacío
+                className={`w-full bg-slate-800 text-white border border-slate-700 rounded-xl p-2.5 flex items-center justify-between outline-none transition-all text-left ${leagues.length === 0 ? 'opacity-50 cursor-not-allowed' : 'focus:ring-2 focus:ring-indigo-500'}`}
             >
                 <div className="flex flex-col min-w-0 pr-2">
                     <span className="text-xs font-bold text-slate-200 truncate">
-                        {currentLeague ? currentLeague.name : 'Select League'}
+                        {currentLeague?.name || 'No leagues found'}
                     </span>
                     <span className="text-[10px] text-indigo-400 font-semibold uppercase tracking-wider mt-0.5 truncate">
-                        {currentLeague ? currentLeague.season : 'No Active League'}
+                        {currentLeague?.season || 'Check connection'}
                     </span>
                 </div>
                 <span className={`text-slate-400 text-xs transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`}>
-                    ▼
+                    {leagues.length > 0 ? '▼' : '-'}
                 </span>
             </button>
 
-            {isOpen && (
+            {isOpen && leagues.length > 0 && (
                 <div className="absolute left-0 mt-2 w-full min-w-[250px] rounded-xl bg-slate-900 border border-slate-700 shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-100">
                     <div className="max-h-60 overflow-y-auto p-1.5 space-y-1">
                         {leagues.map(l => (
                             <button
-                                key={`custom-l-${l.id}`}
+                                key={`custom-l-${l?.id}`}
                                 type="button"
                                 onClick={() => {
                                     onLeagueChange(l.id);

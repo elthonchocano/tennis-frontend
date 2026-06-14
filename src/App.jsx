@@ -28,10 +28,13 @@ function App() {
   useEffect(() => {
     api.get('/v1/leagues?page=0&size=50')
       .then(res => {
-        setLeagues(res.data);
-        if (res.data.length > 0) setSelectedLeague(res.data[0].id);
+        setLeagues(Array.isArray(res.data) ? res.data : []);
+        if (res.data && res.data.length > 0) {
+          setSelectedLeague(res.data[0].id);
+        }
       })
-      .catch(() => { });
+      .catch(err => console.error("Error al cargar ligas", err))
+      .finally(() => setLoading(false));
   }, []);
 
   const fetchLeaderboard = (leagueId) => {

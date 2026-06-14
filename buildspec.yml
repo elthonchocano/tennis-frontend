@@ -12,9 +12,14 @@ phases:
       - npm run build
   post_build:
     commands:
-      - echo "Checking dist directory..."
-      - ls -la dist/ || echo "¡Directory dist not found!"  
-      - echo Uploading static assets to S3 hosting bucket...
-      - aws s3 sync dist/ s3://$FRONTEND_S3_BUCKET --delete --debug
-      - echo Invalidating CloudFront cache to clear edge locations...
+      # Clear bucket contents to prevent sync conflicts
+      - echo Cleaning S3 bucket...
+      - aws s3 rm s3://$FRONTEND_S3_BUCKET --recursive
+      
+      # Upload build artifacts
+      - echo Uploading static assets...
+      - aws s3 sync dist/ s3://$FRONTEND_S3_BUCKET
+      
+      # Invalidate CloudFront cache
+      - echo Invalidating CloudFront cache...
       - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DIST_ID --paths "/*"

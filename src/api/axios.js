@@ -5,7 +5,9 @@ let configPromise = null;
 
 const getApiConfig = async () => {
     if (!configPromise) {
-        configPromise = fetch('/config.json')
+        // Añadimos un timestamp para evitar que el navegador cachee el archivo
+        const timestamp = new Date().getTime();
+        configPromise = fetch(`/config.json?t=${timestamp}`)
             .then((res) => res.json())
             .catch(() => ({
                 VITE_API_BASE_URL: '',

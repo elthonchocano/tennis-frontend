@@ -8,10 +8,13 @@ export function AuthProvider({ children }) {
     const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
     const [config, setConfig] = useState(null);
 
-    // Load configuration at runtime
     useEffect(() => {
-        fetch('/config.json')
-            .then((res) => res.json())
+        const timestamp = new Date().getTime();
+        fetch(`/config.json?t=${timestamp}`)
+            .then((res) => {
+                if (!res.ok) throw new Error('Network response was not ok');
+                return res.json();
+            })
             .then((data) => setConfig(data))
             .catch((err) => console.error("Failed to load config:", err));
     }, []);

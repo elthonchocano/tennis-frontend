@@ -30,9 +30,9 @@ phases:
       
       - echo "Generated config file content:"
       - cat dist/config.json
-      
+
       # Upload the configuration file to S3
-      - aws s3 cp dist/config.json s3://$FRONTEND_S3_BUCKET/config.json
+      - aws s3 cp dist/config.json s3://$FRONTEND_S3_BUCKET/config.json --cache-control "no-cache, no-store, must-revalidate"
       
       # Invalidate CloudFront cache
       - echo Invalidating CloudFront cache...

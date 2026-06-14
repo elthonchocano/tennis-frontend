@@ -6,11 +6,19 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
     const [token, setToken] = useState(localStorage.getItem('token'));
     const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+    const [config, setConfig] = useState(null);
 
-    const authServerUrl = import.meta.env.VITE_AUTH_SERVER_URL;
-    const clientId = import.meta.env.VITE_AUTH_CLIENT_ID;
+    // Load configuration at runtime
+    useEffect(() => {
+        fetch('/config.json')
+            .then((res) => res.json())
+            .then((data) => setConfig(data))
+            .catch((err) => console.error("Failed to load config:", err));
+    }, []);
 
     useEffect(() => {
+        if (!config) return;
+
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
 
@@ -20,10 +28,10 @@ export function AuthProvider({ children }) {
             const params = new URLSearchParams();
             params.append('grant_type', 'authorization_code');
             params.append('code', code);
-            params.append('client_id', clientId);
+            params.append('client_id', config.VITE_AUTH_CLIENT_ID);
             params.append('redirect_uri', window.location.origin);
 
-            axios.post(`${authServerUrl}/protocol/openid-connect/token`, params, {
+            axios.post(`${config.VITE_AUTH_SERVER_URL}/protocol/openid-connect/token`, params, {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             })
                 .then(response => {
@@ -35,21 +43,23 @@ export function AuthProvider({ children }) {
                     setToken(access_token);
                     setIsAuthenticated(true);
                 })
-                .catch(() => {});
+                .catch(() => { });
         }
-    }, [clientId, authServerUrl]);
+    }, [config]);
 
     const redirectToLogin = () => {
-        const loginUrl = `${authServerUrl}/protocol/openid-connect/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=code&scope=openid%20profile%20offline_access`;
+        if (!config) return;
+        const loginUrl = `${config.VITE_AUTH_SERVER_URL}/protocol/openid-connect/auth?client_id=${config.VITE_AUTH_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=code&scope=openid%20profile%20offline_access`;
         window.location.href = loginUrl;
     };
 
     const logout = () => {
+        if (!config) return;
         localStorage.removeItem('token');
         localStorage.removeItem('refresh_token');
         setToken(null);
         setIsAuthenticated(false);
-        window.location.href = `${authServerUrl}/protocol/openid-connect/logout?client_id=${clientId}&post_logout_redirect_uri=${encodeURIComponent(window.location.origin)}`;
+        window.location.href = `${config.VITE_AUTH_SERVER_URL}/protocol/openid-connect/logout?client_id=${config.VITE_AUTH_CLIENT_ID}&post_logout_redirect_uri=${encodeURIComponent(window.location.origin)}`;
     };
 
     return (

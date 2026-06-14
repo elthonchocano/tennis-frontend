@@ -1,14 +1,32 @@
 import axios from 'axios';
 
+// Configuration promise to ensure we load config only once
+let configPromise = null;
+
+const getApiConfig = async () => {
+    if (!configPromise) {
+        configPromise = fetch('/config.json')
+            .then((res) => res.json())
+            .catch(() => ({
+                VITE_API_BASE_URL: '',
+                VITE_AUTH_SERVER_URL: '',
+                VITE_AUTH_CLIENT_ID: ''
+            }));
+    }
+    return configPromise;
+};
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL,
     headers: {
         'Content-Type': 'application/json'
     }
 });
 
 api.interceptors.request.use(
-    (config) => {
+    async (config) => {
+        const appConfig = await getApiConfig();
+        config.baseURL = appConfig.VITE_API_BASE_URL;
+
         const token = localStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -27,8 +45,9 @@ api.interceptors.response.use(
             originalRequest._retry = true;
 
             const refreshToken = localStorage.getItem('refresh_token');
-            const authServerUrl = import.meta.env.VITE_AUTH_SERVER_URL;
-            const clientId = import.meta.env.VITE_AUTH_CLIENT_ID;
+            const appConfig = await getApiConfig();
+            const authServerUrl = appConfig.VITE_AUTH_SERVER_URL;
+            const clientId = appConfig.VITE_AUTH_CLIENT_ID;
 
             if (refreshToken) {
                 try {

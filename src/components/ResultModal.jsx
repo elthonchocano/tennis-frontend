@@ -5,12 +5,21 @@ export default function ResultModal({ isOpen, onClose, activeMatch, onResultsSav
   const [sets, setSets] = useState([]);
   const [walkover, setWalkover] = useState(false);
   const [walkoverWinnerId, setWalkoverWinnerId] = useState('');
+  const [walkoverWinnerName, setWalkoverWinnerName] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [openWinner, setOpenWinner] = useState(false);
 
   useEffect(() => {
     if (isOpen && activeMatch) {
       setWalkover(activeMatch.walkover || false);
       setWalkoverWinnerId(activeMatch.walkoverWinnerId || '');
+
+      const winner = activeMatch.walkoverWinnerId === activeMatch.team1.id
+        ? activeMatch.team1.teamName
+        : activeMatch.walkoverWinnerId === activeMatch.team2.id
+          ? activeMatch.team2.teamName
+          : '';
+      setWalkoverWinnerName(winner);
 
       const maxSets = activeMatch.matchType === 'LONG' ? 5 : 3;
       const initialSets = [];
@@ -41,7 +50,6 @@ export default function ResultModal({ isOpen, onClose, activeMatch, onResultsSav
       updatedSets[index].team1TieBreakPoints = '';
       updatedSets[index].team2TieBreakPoints = '';
     }
-
     setSets(updatedSets);
   };
 
@@ -121,7 +129,7 @@ export default function ResultModal({ isOpen, onClose, activeMatch, onResultsSav
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
 
         <div className="p-4 bg-slate-900 text-white font-bold flex justify-between items-center shrink-0">
           <div>
@@ -144,18 +152,35 @@ export default function ResultModal({ isOpen, onClose, activeMatch, onResultsSav
           </div>
 
           {walkover ? (
-            <div className="animate-in fade-in duration-150">
+            <div className="relative animate-in fade-in duration-150">
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Select Winner</label>
-              <select
-                required
-                className="w-full border rounded-lg p-2.5 bg-slate-50 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-                value={walkoverWinnerId}
-                onChange={(e) => setWalkoverWinnerId(e.target.value)}
+              <button
+                type="button"
+                onClick={() => setOpenWinner(!openWinner)}
+                className="w-full border rounded-lg p-2.5 bg-slate-50 text-sm text-left outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-medium flex justify-between items-center"
               >
-                <option value="">-- Choose the winner --</option>
-                <option value={activeMatch.team1.id}>{activeMatch.team1.teamName}</option>
-                <option value={activeMatch.team2.id}>{activeMatch.team2.teamName}</option>
-              </select>
+                <span>{walkoverWinnerName || '-- Choose the winner --'}</span>
+                <svg className="h-4 w-4 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
+              </button>
+
+              {openWinner && (
+                <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1">
+                  {[activeMatch.team1, activeMatch.team2].map(team => (
+                    <button
+                      key={team.id}
+                      type="button"
+                      className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors"
+                      onClick={() => {
+                        setWalkoverWinnerId(team.id);
+                        setWalkoverWinnerName(team.teamName);
+                        setOpenWinner(false);
+                      }}
+                    >
+                      {team.teamName}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4 pr-1 animate-in fade-in duration-150">

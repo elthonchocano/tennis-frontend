@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from './api/axios';
 import Navbar from './components/Navbar';
 import AdminPanel from './components/AdminPanel';
@@ -26,6 +26,8 @@ function App() {
   const [activeMatch, setActiveMatch] = useState(null);
 
   const [isPanelVisible, setIsPanelVisible] = useState(false);
+
+  const matchesPanelRef = useRef(null);
 
   const fetchLeagues = () => {
     api.get('/v1/leagues?page=0&size=50')
@@ -67,6 +69,9 @@ function App() {
       .then(res => {
         setMatches(res.data.content || res.data);
         setLoadingMatches(false);
+        setTimeout(() => {
+          matchesPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
       })
       .catch(() => {
         setLoadingMatches(false);
@@ -128,6 +133,7 @@ function App() {
           </div>
 
           <TeamMatchesPanel
+            ref={matchesPanelRef}
             selectedTeam={selectedTeam}
             matches={matches}
             loadingMatches={loadingMatches}

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../api/axios';
 import AddLeagueModal from './AddLeagueModal';
+import { useAuth } from '../context/AuthContext';
 
-export default function AdminPanel({ selectedLeague, onOpenMatchModal, onParticipantAdded, onLeagueAdded }) {
+export default function AdminPanel({ selectedLeague, onOpenMatchModal, onParticipantAdded, onLeagueAdded }) {    
     const [playerForm, setPlayerForm] = useState({ firstName: '', lastName: '', phoneNumber: '', hand: 'R' });
     const [loadingPlayer, setLoadingPlayer] = useState(false);
     const [teams, setTeams] = useState([]);
@@ -12,6 +13,7 @@ export default function AdminPanel({ selectedLeague, onOpenMatchModal, onPartici
     const [selectedTeamId, setSelectedTeamId] = useState('');
     const [selectedTeamName, setSelectedTeamName] = useState('');
 
+    const { user } = useAuth();
     const isSuperAdmin = user?.groups?.includes('super-admin');
 
     const fetchTeams = () => {

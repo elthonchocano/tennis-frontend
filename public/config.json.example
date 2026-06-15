@@ -1,0 +1,6 @@
+{
+  "VITE_AUTH_STRATEGY": "cognito-keycloak",
+  "VITE_API_BASE_URL": "backend url",
+  "VITE_AUTH_SERVER_URL": "auth url",
+  "VITE_AUTH_CLIENT_ID": "auth client-id"
+}

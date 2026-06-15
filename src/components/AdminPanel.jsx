@@ -12,6 +12,8 @@ export default function AdminPanel({ selectedLeague, onOpenMatchModal, onPartici
     const [selectedTeamId, setSelectedTeamId] = useState('');
     const [selectedTeamName, setSelectedTeamName] = useState('');
 
+    const isSuperAdmin = user?.groups?.includes('super-admin');
+
     const fetchTeams = () => {
         axios.get('/v1/teams')
             .then(res => {
@@ -69,14 +71,15 @@ export default function AdminPanel({ selectedLeague, onOpenMatchModal, onPartici
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
                 <div className="flex flex-col gap-2">
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Management</h3>
-                    <button
-                        type="button"
-                        onClick={() => setIsLeagueModalOpen(true)}
-                        className="w-full bg-emerald-600 text-white text-xs font-bold py-2.5 px-4 rounded-lg hover:bg-emerald-700 transition-all"
-                    >
-                        🏅 New League
-                    </button>
-
+                    {isSuperAdmin && (
+                        <button
+                            type="button"
+                            onClick={() => setIsLeagueModalOpen(true)}
+                            className="w-full bg-emerald-600 text-white text-xs font-bold py-2.5 px-4 rounded-lg hover:bg-emerald-700 transition-all"
+                        >
+                            🏅 New League
+                        </button>
+                    )}
                     <button
                         type="button"
                         onClick={onOpenMatchModal}

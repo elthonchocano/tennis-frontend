@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../api/axios';
+import AddLeagueModal from './AddLeagueModal';
 
-export default function AdminPanel({ selectedLeague, onOpenMatchModal, onParticipantAdded }) {
+export default function AdminPanel({ selectedLeague, onOpenMatchModal, onParticipantAdded, onLeagueAdded }) {
     const [playerForm, setPlayerForm] = useState({ firstName: '', lastName: '', phoneNumber: '', hand: 'R' });
     const [loadingPlayer, setLoadingPlayer] = useState(false);
     const [teams, setTeams] = useState([]);
+    const [isLeagueModalOpen, setIsLeagueModalOpen] = useState(false);
 
-    // 🎯 Estados para controlar el dropdown personalizado de inscripción
     const [openTeamDropdown, setOpenTeamDropdown] = useState(false);
     const [selectedTeamId, setSelectedTeamId] = useState('');
     const [selectedTeamName, setSelectedTeamName] = useState('');
@@ -55,7 +56,7 @@ export default function AdminPanel({ selectedLeague, onOpenMatchModal, onPartici
             .then(() => {
                 alert("Successfully enrolled in the league.");
                 setSelectedTeamId('');
-                setSelectedTeamName(''); // Limpiamos el nombre seleccionado
+                setSelectedTeamName('');
                 if (onParticipantAdded) onParticipantAdded();
             })
             .catch(() => {
@@ -66,8 +67,16 @@ export default function AdminPanel({ selectedLeague, onOpenMatchModal, onPartici
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-8 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
-                <div>
-                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Schedule</h3>
+                <div className="flex flex-col gap-2">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Management</h3>
+                    <button
+                        type="button"
+                        onClick={() => setIsLeagueModalOpen(true)}
+                        className="w-full bg-emerald-600 text-white text-xs font-bold py-2.5 px-4 rounded-lg hover:bg-emerald-700 transition-all"
+                    >
+                        🏅 New League
+                    </button>
+
                     <button
                         type="button"
                         onClick={onOpenMatchModal}
@@ -81,22 +90,10 @@ export default function AdminPanel({ selectedLeague, onOpenMatchModal, onPartici
                     <div className="grid-cols-1 sm:col-span-2 lg:col-span-5">
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">1. Register New Player</h3>
                     </div>
-                    <input
-                        type="text" required placeholder="First Name" className="w-full border rounded-lg p-2 text-xs bg-slate-50"
-                        value={playerForm.firstName} onChange={(e) => setPlayerForm({ ...playerForm, firstName: e.target.value })}
-                    />
-                    <input
-                        type="text" required placeholder="Last Name" className="w-full border rounded-lg p-2 text-xs bg-slate-50"
-                        value={playerForm.lastName} onChange={(e) => setPlayerForm({ ...playerForm, lastName: e.target.value })}
-                    />
-                    <input
-                        type="text" placeholder="Phone" className="w-full border rounded-lg p-2 text-xs bg-slate-50"
-                        value={playerForm.phoneNumber} onChange={(e) => setPlayerForm({ ...playerForm, phoneNumber: e.target.value })}
-                    />
-                    <select
-                        className="w-full border rounded-lg p-2 text-xs bg-slate-50 text-slate-600 outline-none"
-                        value={playerForm.hand} onChange={(e) => setPlayerForm({ ...playerForm, hand: e.target.value })}
-                    >
+                    <input type="text" required placeholder="First Name" className="w-full border rounded-lg p-2 text-xs bg-slate-50" value={playerForm.firstName} onChange={(e) => setPlayerForm({ ...playerForm, firstName: e.target.value })} />
+                    <input type="text" required placeholder="Last Name" className="w-full border rounded-lg p-2 text-xs bg-slate-50" value={playerForm.lastName} onChange={(e) => setPlayerForm({ ...playerForm, lastName: e.target.value })} />
+                    <input type="text" placeholder="Phone" className="w-full border rounded-lg p-2 text-xs bg-slate-50" value={playerForm.phoneNumber} onChange={(e) => setPlayerForm({ ...playerForm, phoneNumber: e.target.value })} />
+                    <select className="w-full border rounded-lg p-2 text-xs bg-slate-50 text-slate-600 outline-none" value={playerForm.hand} onChange={(e) => setPlayerForm({ ...playerForm, hand: e.target.value })}>
                         <option value="R">Right-handed (R)</option>
                         <option value="L">Left-handed (L)</option>
                     </select>
@@ -108,6 +105,7 @@ export default function AdminPanel({ selectedLeague, onOpenMatchModal, onPartici
 
             <div className="border-t border-slate-100"></div>
 
+            {/* Sección de Registro */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
                 <div>
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Registration</h3>
@@ -115,52 +113,33 @@ export default function AdminPanel({ selectedLeague, onOpenMatchModal, onPartici
                 </div>
 
                 <form onSubmit={handleAddParticipant} className="md:col-span-3 flex flex-col sm:flex-row gap-3 items-end relative">
-                    {/* 🎯 Custom Dropdown en lugar del select nativo */}
                     <div className="flex-1 w-full relative">
-                        <button
-                            type="button"
-                            onClick={() => setOpenTeamDropdown(!openTeamDropdown)}
-                            className="w-full border rounded-lg p-2.5 bg-slate-50 text-xs text-left text-slate-700 font-medium flex justify-between items-center focus:ring-2 focus:ring-indigo-500 bg-slate-50 outline-none"
-                        >
+                        <button type="button" onClick={() => setOpenTeamDropdown(!openTeamDropdown)} className="w-full border rounded-lg p-2.5 bg-slate-50 text-xs text-left text-slate-700 font-medium flex justify-between items-center focus:ring-2 focus:ring-indigo-500 outline-none">
                             <span>{selectedTeamName || "-- Select a player --"}</span>
-                            <svg className="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                            </svg>
+                            <svg className="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
                         </button>
-
                         {openTeamDropdown && Array.isArray(teams) && (
-                            // 🎯 Menú flotante con altura máxima y scroll interno propio, aislado del flujo del grid
                             <div className="absolute left-0 right-0 bottom-full sm:bottom-auto sm:mt-1 mb-1 sm:mb-0 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1">
-                                {teams.length === 0 ? (
-                                    <div className="px-4 py-2 text-xs text-slate-400">No players available</div>
-                                ) : (
-                                    teams.map(t => (
-                                        <button
-                                            key={`custom-team-opt-${t.id}`}
-                                            type="button"
-                                            className="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-100 transition-colors"
-                                            onClick={() => {
-                                                setSelectedTeamId(t.id);
-                                                setSelectedTeamName(t.teamName);
-                                                setOpenTeamDropdown(false);
-                                            }}
-                                        >
-                                            {t.teamName}
-                                        </button>
-                                    ))
-                                )}
+                                {teams.length === 0 ? <div className="px-4 py-2 text-xs text-slate-400">No players available</div> : teams.map(t => (
+                                    <button key={`custom-team-opt-${t.id}`} type="button" className="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-100 transition-colors" onClick={() => { setSelectedTeamId(t.id); setSelectedTeamName(t.teamName); setOpenTeamDropdown(false); }}>
+                                        {t.teamName}
+                                    </button>
+                                ))}
                             </div>
                         )}
                     </div>
-
-                    <button
-                        type="submit"
-                        className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 px-6 rounded-lg transition-all shrink-0"
-                    >
+                    <button type="submit" className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 px-6 rounded-lg transition-all shrink-0">
                         Enroll in League
                     </button>
                 </form>
             </div>
+
+            {/* Modal para crear nueva liga */}
+            <AddLeagueModal
+                isOpen={isLeagueModalOpen}
+                onClose={() => setIsLeagueModalOpen(false)}
+                onLeagueAdded={onLeagueAdded}
+            />
         </div>
     );
 }

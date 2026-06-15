@@ -1,5 +1,6 @@
 {
-  "VITE_API_BASE_URL": "REEMPLAZAR_EN_PIPELINE",
-  "VITE_AUTH_SERVER_URL": "REEMPLAZAR_EN_PIPELINE",
-  "VITE_AUTH_CLIENT_ID": "REEMPLAZAR_EN_PIPELINE"
+  "VITE_AUTH_STRATEGY": "cognito",
+  "VITE_API_BASE_URL": "http://localhost:8080",
+  "VITE_AUTH_SERVER_URL": "https://tennis-league-manager.auth.us-east-1.amazoncognito.com",
+  "VITE_AUTH_CLIENT_ID": "4bqfvm75dpf82lnm2mdmphc3tr"
 }

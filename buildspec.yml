@@ -26,7 +26,7 @@ phases:
       
       # Generate dynamic configuration file for runtime usage
       - |
-        echo "{\"VITE_API_BASE_URL\": \"$VITE_API_URL\", \"VITE_AUTH_SERVER_URL\": \"$VITE_AUTH_SERVER_URL\", \"VITE_AUTH_CLIENT_ID\": \"$VITE_AUTH_CLIENT_ID\"}" > dist/config.json
+        echo "{\"VITE_AUTH_STRATEGY\": \"cognito\", \"VITE_API_BASE_URL\": \"$VITE_API_URL\", \"VITE_AUTH_SERVER_URL\": \"$VITE_AUTH_SERVER_URL\", \"VITE_AUTH_CLIENT_ID\": \"$VITE_AUTH_CLIENT_ID\"}" > dist/config.json
       
       - echo "Generated config file content:"
       - cat dist/config.json

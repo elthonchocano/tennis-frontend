@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Configuration promise to ensure we load config only once
 let configPromise = null;
 
 const getApiConfig = async () => {

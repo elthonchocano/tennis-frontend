@@ -25,7 +25,9 @@ function App() {
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [activeMatch, setActiveMatch] = useState(null);
 
-  useEffect(() => {
+  const [isPanelVisible, setIsPanelVisible] = useState(false);
+
+  const fetchLeagues = () => {
     api.get('/v1/leagues?page=0&size=50')
       .then(res => {
         setLeagues(Array.isArray(res.data) ? res.data : []);
@@ -35,6 +37,10 @@ function App() {
       })
       .catch(err => console.error("Error al cargar ligas", err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchLeagues();
   }, []);
 
   const fetchLeaderboard = (leagueId) => {
@@ -91,11 +97,24 @@ function App() {
       />
 
       <div className="max-w-6xl mx-auto px-4 pb-12 flex-grow w-full">
+
         {isAuthenticated && (
+          <div className="mb-6">
+            <button
+              onClick={() => setIsPanelVisible(!isPanelVisible)}
+              className="text-[10px] uppercase tracking-widest font-bold bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition-all shadow-sm"
+            >
+              {isPanelVisible ? "▲ Hide Admin Panel" : "▼ Show Admin Panel"}
+            </button>
+          </div>
+        )}
+
+        {isAuthenticated && isPanelVisible && (
           <AdminPanel
             selectedLeague={selectedLeague}
             onOpenMatchModal={() => setIsMatchModalOpen(true)}
             onParticipantAdded={handleRefreshData}
+            onLeagueAdded={fetchLeagues}
           />
         )}
 

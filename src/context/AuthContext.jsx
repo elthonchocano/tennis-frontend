@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { getAuthStrategy } from './authStrategies';
 
 const AuthContext = createContext(null);
 
@@ -8,40 +9,38 @@ export function AuthProvider({ children }) {
     const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
     const [config, setConfig] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [strategy, setStrategy] = useState(null);
 
     useEffect(() => {
-        const timestamp = new Date().getTime();
-        fetch(`/config.json?t=${timestamp}`)
-            .then((res) => {
-                if (!res.ok) throw new Error('Network response was not ok');
-                return res.json();
-            })
+        fetch(`/config.json?t=${new Date().getTime()}`)
+            .then((res) => res.json())
             .then((data) => {
                 setConfig(data);
+                setStrategy(getAuthStrategy(data.VITE_AUTH_STRATEGY));
                 setIsLoading(false);
             })
             .catch((err) => {
-                console.error("Failed to load config:", err);
-                setIsLoading(false); 
+                console.error("Configuration load error:", err);
+                setIsLoading(false);
             });
     }, []);
 
     useEffect(() => {
-        if (isLoading || !config) return;
+        if (isLoading || !config || !strategy) return;
 
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
-
         if (code) {
             window.history.replaceState({}, document.title, window.location.origin);
+            const redirectUri = window.location.origin + "/";
 
             const params = new URLSearchParams();
             params.append('grant_type', 'authorization_code');
             params.append('code', code);
             params.append('client_id', config.VITE_AUTH_CLIENT_ID);
-            params.append('redirect_uri', window.location.origin);
+            params.append('redirect_uri', redirectUri);
 
-            axios.post(`${config.VITE_AUTH_SERVER_URL}/protocol/openid-connect/token`, params, {
+            axios.post(strategy.token(config), params, {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             })
                 .then(response => {
@@ -51,29 +50,45 @@ export function AuthProvider({ children }) {
                     setToken(access_token);
                     setIsAuthenticated(true);
                 })
-                .catch(err => console.error("Auth Token Error:", err));
+                .catch(err => {
+                    console.error("DEBUG: Error en el POST:", err.response || err);
+                });
         }
-    }, [config, isLoading]);
+    }, [config, isLoading, strategy]);
 
     const redirectToLogin = () => {
-        if (!config) return;
-        const loginUrl = `${config.VITE_AUTH_SERVER_URL}/protocol/openid-connect/auth?client_id=${config.VITE_AUTH_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=code&scope=openid%20profile%20offline_access`;
+        if (!config) {
+            console.error("CRÍTICO: Config es null/undefined");
+            return;
+        }
+        if (!config || !strategy) {
+            console.error("Auth: Configuration not loaded yet.");
+            return;
+        }
+        const redirectUri = window.location.origin + "/";
+        const loginUrl = `${strategy.authorize(config)}?` + new URLSearchParams({
+            client_id: config.VITE_AUTH_CLIENT_ID,
+            response_type: "code",
+            scope: "openid profile email phone",
+            redirect_uri: redirectUri
+        }).toString();
+
         window.location.href = loginUrl;
     };
 
     const logout = () => {
-        if (!config) return;
+        if (!config || !strategy) return;
         localStorage.removeItem('token');
         localStorage.removeItem('refresh_token');
         setToken(null);
         setIsAuthenticated(false);
-        window.location.href = `${config.VITE_AUTH_SERVER_URL}/protocol/openid-connect/logout?client_id=${config.VITE_AUTH_CLIENT_ID}&post_logout_redirect_uri=${encodeURIComponent(window.location.origin)}`;
+        window.location.href = strategy.logout(config, window.location.origin + "/");
     };
 
     if (isLoading) return <div>Loading Application...</div>;
 
     return (
-        <AuthContext.Provider value={{ token, isAuthenticated, redirectToLogin, logout }}>
+        <AuthContext.Provider value={{ token, isAuthenticated, redirectToLogin, logout, isLoading }}>
             {children}
         </AuthContext.Provider>
     );

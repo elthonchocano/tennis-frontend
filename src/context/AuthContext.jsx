@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { getAuthStrategy } from './authStrategies';
+import { jwtDecode } from 'jwt-decode';
 
 const AuthContext = createContext(null);
 
@@ -10,6 +11,27 @@ export function AuthProvider({ children }) {
     const [config, setConfig] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [strategy, setStrategy] = useState(null);
+    const [user, setUser] = useState(null);
+
+    const decodeUser = (accessToken) => {
+        if (!accessToken) return null;
+        try {
+            const decoded = jwtDecode(accessToken);
+            return {
+                ...decoded,
+                groups: decoded.realm_access?.roles || []
+            };
+        } catch (e) {
+            console.error("Error decodificando token:", e);
+            return null;
+        }
+    };
+
+    useEffect(() => {
+        if (token) {
+            setUser(decodeUser(token));
+        }
+    }, [token]);
 
     useEffect(() => {
         fetch(`/config.json?t=${new Date().getTime()}`)
@@ -48,6 +70,7 @@ export function AuthProvider({ children }) {
                     localStorage.setItem('token', access_token);
                     localStorage.setItem('refresh_token', refresh_token);
                     setToken(access_token);
+                    setUser(decodeUser(access_token));
                     setIsAuthenticated(true);
                 })
                 .catch(err => {
@@ -81,6 +104,7 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('token');
         localStorage.removeItem('refresh_token');
         setToken(null);
+        setUser(null);
         setIsAuthenticated(false);
         window.location.href = strategy.logout(config, window.location.origin + "/");
     };
@@ -88,7 +112,7 @@ export function AuthProvider({ children }) {
     if (isLoading) return <div>Loading Application...</div>;
 
     return (
-        <AuthContext.Provider value={{ token, isAuthenticated, redirectToLogin, logout, isLoading }}>
+        <AuthContext.Provider value={{ token, user, isAuthenticated, redirectToLogin, logout, isLoading }}>
             {children}
         </AuthContext.Provider>
     );

@@ -14,6 +14,7 @@ export default function AdminPanel({ selectedLeague, onOpenMatchModal, onPartici
     const [selectedTeamName, setSelectedTeamName] = useState('');
 
     const { user } = useAuth();
+
     const isSuperAdmin = user?.groups?.includes('super-admin');
 
     const fetchTeams = () => {

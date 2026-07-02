@@ -14,7 +14,7 @@ export default function LeaderboardTable({ leaderboard, loading, onViewMatches }
                         <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                             <th className="py-3 px-4 text-center w-12">Pos</th>
                             <th className="py-3 px-4">Player</th>
-                            <th className="py-3 px-4 text-center w-24 hidden sm:table-cell">W / L</th>
+                            <th className="py-3 px-4 text-center w-40 hidden sm:table-cell">W / L</th>
                             <th className="py-3 px-4 text-center w-20">Points</th>
                             <th className="py-3 px-4 text-center w-24 hidden sm:table-cell">Action</th>
                         </tr>
@@ -33,24 +33,39 @@ export default function LeaderboardTable({ leaderboard, loading, onViewMatches }
                                             {row.team.teamName}
                                         </span>
 
-                                        <div className="flex sm:hidden items-center gap-3 mt-1">
-                                            <span className="text-xs font-mono">
-                                                <span className="text-emerald-600 font-bold">{row.matchesWon}W</span>
-                                                <span className="text-slate-300 mx-0.5">-</span>
-                                                <span className="text-rose-600 font-bold">{row.matchesLost}L</span>
-                                            </span>
+                                        <div className="flex sm:hidden items-center justify-between mt-1 w-full gap-2">
+                                            {/* Contenedor de estadísticas compacto */}
+                                            <div className="flex flex-col text-[10px] font-mono leading-tight">
+                                                <div>
+                                                    <span className="text-emerald-600 font-bold">{row.matchesWon}W</span>
+                                                    <span className="text-slate-300 mx-0.5">-</span>
+                                                    <span className="text-rose-600 font-bold">{row.matchesLost}L</span>
+                                                </div>
+                                                <div className="text-slate-500">
+                                                    Sets: <span className="text-emerald-600">{row.setsWon}</span>/<span className="text-rose-600">{row.setsLost}</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Botón a la derecha, manteniendo la fila delgada */}
                                             <button
                                                 onClick={() => onViewMatches(row.team.id, row.team.teamName)}
-                                                className="inline-flex items-center bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all"
+                                                className="flex items-center justify-center bg-indigo-50 hover:bg-indigo-100 text-indigo-600 w-8 h-8 rounded-full shrink-0"
                                             >
-                                                👁️ Matches
+                                                🏸
                                             </button>
                                         </div>
                                     </div>
                                 </td>
 
                                 <td className="py-4 px-4 text-center font-mono text-xs hidden sm:table-cell">
-                                    <span className="text-emerald-600">{row.matchesWon}W</span> - <span className="text-rose-600">{row.matchesLost}L</span>
+                                    <div className="flex flex-col gap-0.5">
+                                        <div>
+                                            <span className="text-emerald-600">{row.matchesWon}W</span> - <span className="text-rose-600">{row.matchesLost}L</span>
+                                        </div>
+                                        <div className="text-[10px] text-slate-400">
+                                            Sets: <span className="text-emerald-600">{row.setsWon}</span> - <span className="text-rose-600">{row.setsLost}</span>
+                                        </div>
+                                    </div>
                                 </td>
 
                                 <td className="py-4 px-4 text-center font-bold text-indigo-600 font-mono">
